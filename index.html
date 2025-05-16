@@ -74,13 +74,22 @@
   }
 
   body {
-    font-family: 'Poppins', serif;
-    background-color: #ffffff;
-    color: #2c3e50;
-    padding: 1.5rem;
-    min-height: 100vh;
-    -webkit-tap-highlight-color: transparent;
-    line-height: 1.5;
+  background-color: #000;
+  background-image: 
+  linear-gradient(transparent 49%, rgba(255,255,255,0.05) 50%, transparent 51%),
+  linear-gradient(to right, transparent 49%, rgba(255,255,255,0.05) 50%, transparent 51%);
+  background-size: 100% 40px, 40px 100%;
+  animation: moveLines 5s linear infinite;
+  color: white;
+  }
+
+  @keyframes moveLines {
+  0% {
+    background-position: 0 0, 0 0;
+  }
+  100% {
+    background-position: 0 40px, 40px 0;
+  }
   }
 
   .d-none {
@@ -119,6 +128,25 @@
     font-weight: 600;
     font-family: 'Poppins', serif;
   }
+
+  .btn-toggle {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.btn-white {
+  background-color: white;
+  color: black;
+}
+
+.btn-black {
+  background-color: black;
+  color: white;
+}
 
   /* ===== Form Styles ===== */
   .modal-body form label {
@@ -742,35 +770,6 @@
     .stats {
       grid-template-columns: repeat(2, 1fr);
     }
-
-    .kita {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: var(--darker);
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding: 0.5rem 0;
-  z-index: 999;
-  box-shadow: 0 -2px 5px rgba(0,0,0,0.15);
-}
-
-.kita button {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  padding: 0.5rem;
-  cursor: pointer;
-  transition: 0.3s ease;
-}
-
-.kita button:hover {
-  color: var(--primary);
-  transform: scale(1.1);
-}
   }
 
   @media (max-width: 480px) {
@@ -801,16 +800,13 @@
         <h2 id="apiTitle"></h2>
       </div>
       <p>Simple API with easy and minimalistic integration for WhatsApp Bot Developers.</p>
-      <section id="apiLinks">
-        <a id="information" href="#" title="Information">Information API</a>
-        <a id="contactdev" href="#" title="Contact Dev">Contact Dev</a>
-      </section>
+          <section id="apiLinks">
+    <a id="information" href="#" title="Information">Information API</a>
+    <a id="contactdev" href="#" title="Contact Dev">Contact Dev</a>
+    </section>
     </section>
 
     <section class="content">
-      <div class="search-container" style="margin-bottom: 1rem;">
-        <input type="text" id="searchInput" placeholder="Search API..." style="width: 100%; padding: 0.5rem; font-size: 1rem; border-radius: 5px; border: 1px solid #ccc;">
-      </div>
       <div class="tabs" id="tabs"></div>
       <div id="api-list" class="api-list"></div>
     </section>
@@ -841,16 +837,8 @@
     </div>
   </div>
 
-  <div class="kita">
-  <a href="/" title="Home">
-    <button><i class="fas fa-home"></i></button>
-  </a>
-  <a href="admin.html" title="Settings">
-    <button><i class="fas fa-cog"></i></button>
-  </a>
-  </div>
-  
   <footer class="footer">
+    <button id="colorToggleBtn" class="btn-toggle btn-white">Tombol Warna</button>
     <div id="credits"></div>
     <div class="contact">
       <a id="githubLink" target="_blank" title="GitHub">
@@ -864,7 +852,8 @@
       </a>
     </div>
   </footer>
-<script>
+
+  <script>
   
   (async () => {
   const settings = await fetch("/settings.json").then(res => res.json());
@@ -913,24 +902,8 @@
       let currentEndpoint = "";
 
       const settings = await fetch("/settings.json").then(res => res.json());
-      const apis = await fetch("/api/endpoints.json").then(res => res.json());
-allAPIs = apis; // Simpan semua data
-document.getElementById("searchInput").addEventListener("input", function () {
-  const query = this.value.toLowerCase();
-  const matchedAPIs = {};
+      const apis = await fetch("/endpoints.json").then(res => res.json());
 
-  Object.keys(allAPIs).forEach(category => {
-    const filtered = allAPIs[category].filter(api =>
-      api.name.toLowerCase().includes(query) ||
-      (api.desc && api.desc.toLowerCase().includes(query)) ||
-      api.path.toLowerCase().includes(query)
-    );
-    if (filtered.length) matchedAPIs[category] = filtered;
-  });
-
-  // Tampilkan hasil pencarian gabungan semua kategori
-  renderSearchResults(matchedAPIs);
-});
       const setContent = (id, property, value) => {
         const el = document.getElementById(id);
         if (el) el[property] = value;
@@ -954,41 +927,7 @@ document.getElementById("searchInput").addEventListener("input", function () {
         button.innerText = key.charAt(0).toUpperCase() + key.slice(1);
         tabsContainer.appendChild(button);
       });
-function renderSearchResults(results) {
-  apiList.innerHTML = "";
 
-  Object.keys(results).forEach(category => {
-    const categoryHeader = document.createElement("h2");
-    categoryHeader.textContent = category;
-    apiList.appendChild(categoryHeader);
-
-    results[category].forEach((api, i) => {
-      const card = document.createElement("div");
-      card.className = "api-card";
-
-      let statusClass = "";
-      if (api.status.toLowerCase().includes("maintenance")) statusClass = "danger";
-      else if (api.status.toLowerCase().includes("beta")) statusClass = "warning";
-
-      card.innerHTML = `
-        <div class="api-info">
-          <h3>${api.name}</h3>
-          ${api.desc ? `<p>${api.desc}</p>` : ""}
-          <span class="status ${statusClass}">${api.status}</span>
-        </div>
-        <button class="play-button" data-endpoint="${api.path}" data-api="${api.name}" data-desc="${api.desc}">
-          <i class="fa-solid fa-play"></i> Try API
-        </button>
-      `;
-
-      apiList.appendChild(card);
-
-      setTimeout(() => {
-        card.style.animation = `cardEntrance 0.6s ease-out ${i * 0.1}s forwards`;
-      }, 10);
-    });
-  });
-}
       // Render API cards
       function renderAPIs(category) {
         apiList.innerHTML = "";
@@ -1134,6 +1073,11 @@ function fetchAPI(endpoint) {
   const loadingEl = document.getElementById("apiResponseLoading");
   const urlsSection = document.querySelector(".copy-section");
   const modal = document.getElementById("apiResponseModal");
+    const toggleBtn = document.getElementById('colorToggleBtn');
+  toggleBtn.addEventListener('click', () => {
+    toggleBtn.classList.toggle('btn-white');
+    toggleBtn.classList.toggle('btn-black');
+  });
 
   // Show loading state
   paramForm.style.display = "none";
@@ -1190,12 +1134,6 @@ function fetchAPI(endpoint) {
       responseEl.classList.remove("d-none");
       responseEl.innerHTML = `<pre>Error: ${err.message}</pre>`;
     });
-
-  document.querySelectorAll('.hotbar button').forEach((btn, i) => {
-  btn.addEventListener('click', () => {
-    alert(`Hotbar tombol ${i + 1} diklik`);
-  });
-});
 }
   </script>
 </body>
